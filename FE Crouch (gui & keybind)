@@ -1,0 +1,76 @@
+-- Hold "z" to crouch
+
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local TextButton = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+local UIGradient = Instance.new("UIGradient")
+
+ScreenGui.Parent = game.Players.Username.PlayerGui
+
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame.BackgroundTransparency = 1.000
+Frame.Position = UDim2.new(0.014780405, 0, 0.478650153, 0)
+Frame.Size = UDim2.new(0, 61, 0, 24)
+Frame.Active = true
+Frame.Draggable = true
+
+TextButton.Parent = ScreenGui
+TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextButton.BackgroundTransparency = 0.700
+TextButton.Position = UDim2.new(0.0147804059, 0, 0.478650153, 0)
+TextButton.Size = UDim2.new(0, 61, 0, 24)
+TextButton.Font = Enum.Font.GothamBold
+TextButton.Text = "Crouch"
+TextButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextButton.TextScaled = true
+TextButton.TextSize = 14.000
+TextButton.TextTransparency = 0.360
+TextButton.TextWrapped = true
+TextButton.MouseButton1Click:Connect(function()
+    KEY = "Z" -- Key to crouch
+    CROUCHWALKSPEED = 5 -- Walkspeed when you are crouching
+
+    local Player = game:GetService("Players").Username;
+    local UserInputService = game:GetService("UserInputService");
+
+    local Character = Player.Character;
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid");
+    local oldWS = Humanoid.WalkSpeed
+
+    local CrouchAnimation = Instance.new("Animation");
+    CrouchAnimation.AnimationId = "rbxassetid://287325678";
+    local Crouch = Humanoid:LoadAnimation(CrouchAnimation);
+    Crouch.Priority = Enum.AnimationPriority.Action
+
+    local Crouching = false
+    UserInputService.InputBegan:Connect(function(input,gameprocessed)
+        if gameprocessed then return end
+        if input.KeyCode == Enum.KeyCode[KEY] then
+            Crouching = true
+            Crouch:Play(.1)
+            Humanoid.WalkSpeed = CROUCHWALKSPEED
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input,gameprocessed)
+        if gameprocessed then return end
+        if input.KeyCode == Enum.KeyCode[KEY] then
+            Crouching = false
+            Crouch:Stop(.1)
+            Humanoid.WalkSpeed = oldWS
+        end
+    end)
+
+    Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if Crouching then
+            Humanoid.WalkSpeed = CROUCHWALKSPEED
+        end
+    end)
+end)
+
+UICorner.Parent = TextButton
+
+UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 255))}
+UIGradient.Parent = TextButton
