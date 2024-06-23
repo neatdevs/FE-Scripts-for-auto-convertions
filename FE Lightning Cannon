@@ -9,7 +9,7 @@ wait(0.5)
 end)
 end
 end
-local p = game.Players.LocalPlayer
+local p = game.Players.Username
 local char = p.Character
 local mouse = p:GetMouse()
 local larm = char["Left Arm"]
@@ -43,7 +43,7 @@ root.Massless = true
 root.CustomPhysicalProperties = PhysicalProperties.new(0,0,0,0,0)
 warn("Netless Activated!")
 Bypass = "Death"
-plr = game.Players.LocalPlayer
+plr = game.Players.Username
 dead = false
 char = plr.Character
 
