@@ -1,0 +1,223 @@
+local model = game:GetService('Players').Username.Character
+local Figure = model
+local torso = model.Torso
+local right_shoulder = torso["Right Shoulder"]
+local left_shoulder =torso["Left Shoulder"]
+local right_hip = torso["Right Hip"]
+local left_hip = torso["Left Hip"]
+local Neck = torso.Neck
+local humanoid = model.Humanoid
+local frames = {CFrame.new(-1, -1.01, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0), CFrame.new(1, -1.01, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0), CFrame.new(2, 0.5, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0), CFrame.new(-2, 0.5, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0)}
+
+local pose = "Standing"
+
+local toolAnim = "None"
+local toolAnimTime = 0
+
+local function on_running(speed)
+    print(speed)
+    if math.round(speed)>0 then
+        pose = "Running"
+    else
+        pose = "Standing"
+    end
+end
+
+local function on_platform_standing()
+    pose = "PlatformStanding"
+end
+
+local function onRunning(speed)
+    if speed>0 then
+        pose = "Running"
+    else
+        pose = "Standing"
+    end
+end
+
+local function on_died()
+    pose = "Dead"
+end
+
+local function on_jumping()
+    pose = "Jumping"
+end
+
+local function on_climbing()
+    pose = "Climbing"
+end
+
+local function on_getting_up()
+    pose = "GettingUp"
+end
+
+local function on_free_fall()
+    pose = "FreeFall"
+end
+
+local function on_falling_down()
+    pose = "FallingDown"
+end
+
+local function on_seated()
+    pose = "Seated"
+end
+
+local function on_platform_standing()
+    pose = "PlatformStanding"
+end
+
+local function moveJump()
+    right_shoulder.MaxVelocity = 0.5
+    left_shoulder.MaxVelocity = 0.5
+    right_shoulder.DesiredAngle = 3.14
+    left_shoulder.DesiredAngle = -3.14
+    right_hip.DesiredAngle = 0
+    left_hip.DesiredAngle = 0
+end
+
+local function moveFreeFall()
+    right_shoulder.MaxVelocity = 0.5
+    left_shoulder.MaxVelocity = 0.5
+    right_shoulder.DesiredAngle = 3.14
+    left_shoulder.DesiredAngle = -3.14
+    right_hip.DesiredAngle = 0
+    left_hip.DesiredAngle = 0
+end
+
+local function moveSit()
+    right_shoulder.MaxVelocity = 0.15
+    left_shoulder.MaxVelocity = 0.15
+    right_shoulder.DesiredAngle = 3.14 /2
+    left_shoulder.DesiredAngle = -3.14 /2
+    right_hip.DesiredAngle = 3.14 /2
+    left_hip.DesiredAngle = -3.14 /2
+end
+
+local function getTool()    
+    for _, kid in ipairs(Figure:GetChildren()) do
+        if kid.className == "Tool" then return kid end
+    end
+    return nil
+end
+
+local function getToolAnim(tool)
+    for _, c in ipairs(tool:GetChildren()) do
+        if c.Name == "toolanim" and c.className == "StringValue" then
+            return c
+        end
+    end
+    return nil
+end
+
+local function animateTool()
+    
+    if (toolAnim == "None") then
+        right_shoulder.DesiredAngle = 1.57
+        return
+    end
+
+    if (toolAnim == "Slash") then
+        right_shoulder.MaxVelocity = 0.5
+        right_shoulder.DesiredAngle = 0
+        return
+    end
+
+    if (toolAnim == "Lunge") then
+        right_shoulder.MaxVelocity = 0.5
+        left_shoulder.MaxVelocity = 0.5
+        right_hip.MaxVelocity = 0.5
+        left_hip.MaxVelocity = 0.5
+        right_shoulder.DesiredAngle = 1.57
+        left_shoulder.DesiredAngle = 1.0
+        right_hip.DesiredAngle = 1.57
+        left_hip.DesiredAngle = 1.0
+        return
+    end
+end
+
+local function move(time)
+    local amplitude
+    local frequency
+  
+    if (pose == "Jumping") then
+        moveJump()
+        return
+    end
+
+    if (pose == "FreeFall") then
+        moveFreeFall()
+        return
+    end
+ 
+    if (pose == "Seated") then
+        moveSit()
+        return
+    end
+
+    local climbFudge = 0
+    
+    if (pose == "Running") then
+        right_shoulder.MaxVelocity = 0.15
+        left_shoulder.MaxVelocity = 0.15
+        amplitude = 1
+        frequency = 9
+    elseif (pose == "Climbing") then
+        right_shoulder.MaxVelocity = 0.5 
+        left_shoulder.MaxVelocity = 0.5
+        amplitude = 1
+        frequency = 9
+        climbFudge = 3.14
+    else
+        amplitude = 0.1
+        frequency = 1
+    end
+
+    desiredAngle = amplitude * math.sin(time*frequency)
+
+    right_shoulder.DesiredAngle = desiredAngle + climbFudge
+    left_shoulder.DesiredAngle = desiredAngle - climbFudge
+    right_hip.DesiredAngle = -desiredAngle
+    left_hip.DesiredAngle = -desiredAngle
+
+
+    local tool = getTool()
+
+    if tool then
+    
+        animStringValueObject = getToolAnim(tool)
+
+        if animStringValueObject then
+            toolAnim = animStringValueObject.Value
+            -- message recieved, delete StringValue
+            animStringValueObject.Parent = nil
+            toolAnimTime = time + .3
+        end
+
+        if time > toolAnimTime then
+            toolAnimTime = 0
+            toolAnim = "None"
+        end
+
+        animateTool()
+        
+    else
+        toolAnim = "None"
+        toolAnimTime = 0
+    end
+end
+
+humanoid.Died:Connect(on_died)
+humanoid.Running:Connect(on_running)
+humanoid.Jumping:Connect(on_jumping)
+humanoid.Climbing:Connect(on_climbing)
+humanoid.GettingUp:Connect(on_getting_up)
+humanoid.FreeFalling:Connect(on_free_fall)
+humanoid.FallingDown:Connect(on_falling_down)
+humanoid.Seated:Connect(on_seated)
+humanoid.PlatformStanding:Connect(on_platform_standing)
+
+while model do
+    local _, time = wait(0.1)
+    move(time)
+end
